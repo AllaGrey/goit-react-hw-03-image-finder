@@ -12,7 +12,7 @@ export class Modal extends Component {
   };
 
   componentWillUnmount() {
-    window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('keydown', this.onKeyDownModal);
   }
 
   onClickModal = e => {
