@@ -5,6 +5,7 @@ import {
   SubmitButton,
 } from './Searchbar.styled';
 import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
 
 export const Searchbar = ({ onSubmit }) => {
   const onSearch = e => {
@@ -20,7 +21,6 @@ export const Searchbar = ({ onSubmit }) => {
         <SubmitButton type="submit">
           <span>Search</span>
         </SubmitButton>
-
         <SearchInput
           type="text"
           autoComplete="off"
@@ -30,4 +30,8 @@ export const Searchbar = ({ onSubmit }) => {
       </SearchForm>
     </Header>
   );
+};
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
 };

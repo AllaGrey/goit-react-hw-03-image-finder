@@ -1,17 +1,12 @@
 import { Gallery, Section } from './ImageGallery.styled';
 import { Component } from 'react';
-import axios from 'axios';
-// import { getImages } from 'components/API/API';
+import { getImages } from 'components/API/API';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Modal } from 'components/Modal/Modal';
 import { LoadMore } from 'components/Button/Button';
 import { toast } from 'react-toastify';
 import { Loader } from 'components/Loader/Loader';
-// import { getValue } from '@testing-library/user-event/dist/utils';
-// import { createGlobalStyle } from 'styled-components';
-
-const BASE_URL = `https://pixabay.com/api/?&image_type=photo&orientation=horizontal&per_page=12`;
-const API_KEY = `key=33677116-85723a5144d957b1da7c90df9`;
+import PropTypes from 'prop-types';
 
 export class ImageGallery extends Component {
   state = {
@@ -31,11 +26,9 @@ export class ImageGallery extends Component {
         }));
         if (prevProps !== this.props) this.setState({ page: 1, gallery: [] });
         const searchQuery = this.props.searchQuery;
-        const URL = `${BASE_URL}&${API_KEY}&q=${searchQuery}&page=${this.state.page}`;
-        const resp = await axios.get(URL);
+        const resp = await getImages(searchQuery, this.state.page);
         const data = resp.data.hits;
         const total = Math.ceil(resp.data.totalHits / 12);
-        console.log(this.state.isLoading);
         this.setState(({ gallery, isLoading, totalPages }) => ({
           gallery: [...gallery, ...data],
           totalPages: total,
@@ -43,20 +36,22 @@ export class ImageGallery extends Component {
         }));
 
         if (data.length === 0) {
+          this.setState({ error: 'No results' });
+          toast.error('No results', {
+            position: 'bottom-right',
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: 'light',
+          });
           throw new Error('No results');
         }
       }
     } catch (error) {
-      toast.error(`${error}`, {
-        position: 'bottom-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: 'light',
-      });
+      console.log(error);
     }
   }
 
@@ -111,3 +106,7 @@ export class ImageGallery extends Component {
     }
   }
 }
+
+ImageGallery.propTypes = {
+  searchQuery: PropTypes.string.isRequired,
+};
