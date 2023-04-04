@@ -20,27 +20,6 @@ export class ImageGallery extends Component {
     currentItemURL: '',
   };
 
-  // componentDidUpdate(prevProps, prevState) {
-  //   if (prevProps.searchQuery !== this.props.searchQuery) {
-  //     this.setState({
-  //       searchQuery: this.props.searchQuery,
-  //       page: 1,
-  //       gallery: [],
-  //       isLoading: true,
-  //     });
-  //   } else if (
-  //     prevState.page !== this.state.page &&
-  //     this.props.searchQuery === this.state.searchQuery
-  //   ) {
-  //     this.getLoading();
-  //   } else if (
-  //     prevProps.searchQuery !== this.props.searchQuery &&
-  //     prevState.page === this.state.page
-  //   ) {
-  //     this.getLoading();
-  //   }
-  // }
-
   async componentDidUpdate(prevState, prevProps) {
     const { searchQuery } = this.props;
     if (this.state.searchQuery !== searchQuery) {
