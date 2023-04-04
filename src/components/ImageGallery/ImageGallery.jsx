@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 
 export class ImageGallery extends Component {
   state = {
+    searchQuery: '',
     page: 1,
     totalPages: 1,
     gallery: [],
@@ -18,41 +19,68 @@ export class ImageGallery extends Component {
     isModalOpen: false,
     currentItemURL: '',
   };
-  async componentDidUpdate(prevProps, prevState) {
-    try {
-      if (prevProps !== this.props || prevState.page !== this.state.page) {
-        this.setState(({ isLoading }) => ({
-          isLoading: !isLoading,
-        }));
-        if (prevProps !== this.props) this.setState({ page: 1, gallery: [] });
-        const searchQuery = this.props.searchQuery;
-        const resp = await getImages(searchQuery, this.state.page);
-        const data = resp.data.hits;
-        const total = Math.ceil(resp.data.totalHits / 12);
-        this.setState(({ gallery, isLoading, totalPages }) => ({
+
+  // componentDidUpdate(prevProps, prevState) {
+  //   if (prevProps.searchQuery !== this.props.searchQuery) {
+  //     this.setState({
+  //       searchQuery: this.props.searchQuery,
+  //       page: 1,
+  //       gallery: [],
+  //       isLoading: true,
+  //     });
+  //   } else if (
+  //     prevState.page !== this.state.page &&
+  //     this.props.searchQuery === this.state.searchQuery
+  //   ) {
+  //     this.getLoading();
+  //   } else if (
+  //     prevProps.searchQuery !== this.props.searchQuery &&
+  //     prevState.page === this.state.page
+  //   ) {
+  //     this.getLoading();
+  //   }
+  // }
+
+  async componentDidUpdate(prevState, prevProps) {
+    const { searchQuery } = this.props;
+    if (this.state.searchQuery !== searchQuery) {
+      await this.setState(({ isLoading }) => ({
+        searchQuery: searchQuery,
+        page: 1,
+        gallery: [],
+        isLoading: !isLoading,
+      }));
+      this.getLoading();
+    }
+  }
+
+  getLoading() {
+    getImages(this.props.searchQuery, this.state.page)
+      .then(({ data, total }) => {
+        this.setState(({ gallery, isLoading, totalPages, page }) => ({
           gallery: [...gallery, ...data],
           totalPages: total,
           isLoading: !isLoading,
+          page: page + 1,
         }));
-
         if (data.length === 0) {
-          this.setState({ error: 'No results' });
-          toast.error('No results', {
-            position: 'bottom-right',
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: 'light',
-          });
           throw new Error('No results');
         }
-      }
-    } catch (error) {
-      console.log(error);
-    }
+      })
+      .catch(err => {
+        const { message } = err;
+        this.setState({ error: message });
+        toast.error('No results', {
+          position: 'bottom-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light',
+        });
+      });
   }
 
   onModal = currentItem => {
@@ -62,8 +90,9 @@ export class ImageGallery extends Component {
     }));
   };
 
-  onLoadMore = newPage => {
-    this.setState({ page: newPage });
+  onLoadMore = () => {
+    this.setState({ isLoading: true });
+    this.getLoading();
   };
 
   render() {
@@ -79,7 +108,6 @@ export class ImageGallery extends Component {
     if (gallery.length > 0) {
       return (
         <Section>
-          {isLoading && <Loader />}
           <Gallery>
             {gallery.map(item => {
               const { id, webformatURL, largeImageURL, tags } = item;
@@ -97,7 +125,7 @@ export class ImageGallery extends Component {
           {isModalOpen && (
             <Modal largeImageURL={currentItemURL} onModal={this.onModal} />
           )}
-
+          {isLoading && <Loader />}
           {totalPages > 1 && page < totalPages && (
             <LoadMore page={page} onClick={this.onLoadMore} />
           )}
